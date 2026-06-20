@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>ブロックス（Blokus）— 1人 vs AI 3人</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="app-header">
+    <h1>ブロックス <span>Blokus</span></h1>
+    <p class="tagline">20×20（400マス）の盤面で、あなた＋AI 3人の4人対戦</p>
+  </header>
+
+  <!-- ============ 設定画面 ============ -->
+  <main id="screen-setup" class="screen">
+    <div class="card">
+      <h2>対戦設定</h2>
+
+      <div class="setup-section">
+        <h3>あなた（<span class="dot blue"></span>青）の棋力</h3>
+        <p class="hint-text">対局中のヒント表示は行いません（自力でプレイ）。ここで選んだ棋力に合わせて、ゲーム終了後の「振り返り（反省・上達アドバイス）」の内容を調整します。</p>
+        <label class="field">
+          <span>あなたの棋力</span>
+          <select id="sel-human"></select>
+        </label>
+      </div>
+
+      <div class="setup-section">
+        <h3>対戦相手（AI 3人）の強さ</h3>
+        <p class="hint-text">それぞれ独立して難易度を選べます。初級＝ほぼランダム／中級＝貪欲／上級＝評価関数＋ブロック／超上級＝モンテカルロ探索（数秒思考）。</p>
+        <label class="field">
+          <span><span class="dot yellow"></span>相手1（黄）</span>
+          <select id="sel-opp-1"></select>
+        </label>
+        <label class="field">
+          <span><span class="dot red"></span>相手2（赤）</span>
+          <select id="sel-opp-2"></select>
+        </label>
+        <label class="field">
+          <span><span class="dot green"></span>相手3（緑）</span>
+          <select id="sel-opp-3"></select>
+        </label>
+      </div>
+
+      <button id="btn-start" class="primary">ゲーム開始</button>
+    </div>
+
+    <div class="card rules-card">
+      <h2>ルール（かんたん）</h2>
+      <ul>
+        <li>各プレイヤーは21個のピースを持ち、自分の角からスタートします。</li>
+        <li>2手目以降、自分の色は<b>角（斜め）でのみ接続</b>でき、<b>辺で接してはいけません</b>。</li>
+        <li>他の色とは辺で接してもOK。重ねて置くことはできません。</li>
+        <li>置けなくなったプレイヤーはパス。全員が置けなくなると終了。</li>
+        <li>得点＝残ったマスのマイナス。全21個を置くと＋15点（最後が1マスなら＋20点）。高いほど勝ち。</li>
+      </ul>
+      <p class="hint-text">操作：トレイでピース選択 →「回転(R)／反転(F)」で向き調整 → 盤面にカーソルを合わせ（緑＝置ける／灰＝置けない）→ クリックで配置。</p>
+    </div>
+  </main>
+
+  <!-- ============ ゲーム画面 ============ -->
+  <main id="screen-game" class="screen hidden">
+    <div class="game-layout">
+      <div class="board-wrap">
+        <div id="turn-banner" class="turn-banner">　</div>
+        <canvas id="board"></canvas>
+      </div>
+
+      <aside class="side">
+        <div id="scoreboard" class="scoreboard"></div>
+
+        <div id="controls" class="controls">
+          <div class="control-row">
+            <button id="btn-rotate">回転 (R)</button>
+            <button id="btn-flip">反転 (F)</button>
+            <button id="btn-deselect">選択解除</button>
+          </div>
+          <div class="control-row">
+            <button id="btn-pass" disabled>パス</button>
+          </div>
+        </div>
+
+        <h3 class="tray-title" id="tray-title">あなたのピース（全21種）</h3>
+        <div id="tray" class="tray"></div>
+      </aside>
+    </div>
+
+    <!-- スマホ専用の下部固定バー（タッチ配置の微調整＋確定）。
+         デスクトップでは CSS で display:none。回転/反転/解除/パスは上の #controls を流用。 -->
+    <div id="action-bar" class="action-bar">
+      <div class="nudge-pad" aria-label="位置の微調整">
+        <button id="btn-nudge-up" aria-label="上へ">↑</button>
+        <button id="btn-nudge-left" aria-label="左へ">←</button>
+        <button id="btn-nudge-right" aria-label="右へ">→</button>
+        <button id="btn-nudge-down" aria-label="下へ">↓</button>
+      </div>
+      <button id="btn-confirm" class="confirm" disabled>確定</button>
+    </div>
+
+    <div id="toast" class="toast"></div>
+  </main>
+
+  <!-- ============ 結果画面 ============ -->
+  <main id="screen-end" class="screen hidden">
+    <div class="card">
+      <h2>結果</h2>
+      <p id="winner-text" class="winner-text"></p>
+      <div id="final-list" class="final-list"></div>
+    </div>
+
+    <div class="card">
+      <h2>振り返り（今回の対局）</h2>
+      <div id="reflection" class="reflection"></div>
+    </div>
+
+    <div class="card">
+      <h2>上達ノート（蓄積）</h2>
+      <p id="history-summary" class="hint-text"></p>
+      <div class="control-row">
+        <button id="btn-export">ノートを書き出す（.md）</button>
+        <button id="btn-clear">記録を消去</button>
+      </div>
+      <details>
+        <summary>過去の振り返りを表示</summary>
+        <div id="history-list" class="history-list"></div>
+      </details>
+      <button id="btn-restart" class="primary">もう一度（設定へ戻る）</button>
+    </div>
+  </main>
+
+  <script src="js/constants.js"></script>
+  <script src="js/pieces.js"></script>
+  <script src="js/rules.js"></script>
+  <script src="js/state.js"></script>
+  <script src="js/ai.js"></script>
+  <script src="js/analysis.js"></script>
+  <script src="js/store.js"></script>
+  <script src="js/render.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>

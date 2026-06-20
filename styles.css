@@ -1,0 +1,250 @@
+:root {
+  --blue: #2563eb;
+  --yellow: #eab308;
+  --red: #dc2626;
+  --green: #16a34a;
+  --bg: #f1f5f9;
+  --card: #ffffff;
+  --ink: #0f172a;
+  --muted: #64748b;
+  --line: #e2e8f0;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: "Hiragino Kaku Gothic ProN", "Yu Gothic", Meiryo, system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+}
+
+.app-header {
+  text-align: center;
+  padding: 18px 12px 6px;
+}
+.app-header h1 { margin: 0; font-size: 26px; letter-spacing: 1px; }
+.app-header h1 span { color: var(--muted); font-size: 16px; font-weight: 500; }
+.tagline { margin: 4px 0 0; color: var(--muted); font-size: 13px; }
+
+.screen { max-width: 1080px; margin: 0 auto; padding: 16px; }
+.screen.hidden { display: none; }
+
+/* ---- setup ---- */
+/* :not(.hidden) so the .hidden display:none utility still wins when toggled
+ * (an id selector's display would otherwise override the class rule). */
+#screen-setup:not(.hidden) { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media (max-width: 760px) { #screen-setup:not(.hidden) { grid-template-columns: 1fr; } }
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 18px 20px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+.card h2 { margin: 0 0 12px; font-size: 18px; }
+.card h3 { margin: 14px 0 6px; font-size: 15px; }
+
+.setup-section { padding-bottom: 8px; border-bottom: 1px dashed var(--line); margin-bottom: 10px; }
+.hint-text { color: var(--muted); font-size: 12.5px; line-height: 1.6; margin: 4px 0 10px; }
+
+.field {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 10px; padding: 7px 0;
+}
+.field span { font-size: 14px; }
+.field select {
+  flex: 0 0 140px; padding: 7px 10px; font-size: 14px;
+  border: 1px solid var(--line); border-radius: 8px; background: #fff;
+}
+
+.dot { display: inline-block; width: 11px; height: 11px; border-radius: 3px; margin-right: 4px; vertical-align: middle; }
+.dot.blue { background: var(--blue); }
+.dot.yellow { background: var(--yellow); }
+.dot.red { background: var(--red); }
+.dot.green { background: var(--green); }
+
+button.primary {
+  margin-top: 14px; width: 100%; padding: 12px;
+  background: var(--blue); color: #fff; border: none; border-radius: 10px;
+  font-size: 16px; font-weight: 600; cursor: pointer;
+}
+/* hover effects only on real pointers — avoids sticky :hover after touch taps */
+@media (hover: hover) {
+  button.primary:hover { filter: brightness(1.05); }
+}
+
+.rules-card ul { margin: 6px 0; padding-left: 18px; line-height: 1.7; font-size: 13.5px; }
+
+/* ---- game ---- */
+.game-layout { display: grid; grid-template-columns: 660px 1fr; gap: 18px; align-items: start; }
+@media (max-width: 980px) { .game-layout { grid-template-columns: 1fr; } }
+
+.board-wrap { display: flex; flex-direction: column; gap: 10px; }
+.turn-banner {
+  font-size: 17px; font-weight: 700; padding: 10px 14px;
+  background: #fff; border: 2px solid var(--line); border-left-width: 8px; border-radius: 10px;
+}
+#board {
+  width: 100%; max-width: 660px; aspect-ratio: 1 / 1;
+  background: #fff; border: 1px solid var(--line); border-radius: 10px;
+  touch-action: none; cursor: pointer;
+}
+
+.side { display: flex; flex-direction: column; gap: 14px; }
+
+.scoreboard { display: flex; flex-direction: column; gap: 6px; }
+.score-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 10px; border: 1px solid var(--line); border-radius: 10px; background: #fff;
+}
+.score-row.active { outline: 2px solid var(--blue); }
+.score-row.finished { opacity: 0.55; }
+.swatch { width: 18px; height: 18px; border-radius: 5px; flex: 0 0 auto; }
+.score-info { font-size: 13px; line-height: 1.4; }
+.score-info small { color: var(--muted); }
+
+.controls { display: flex; flex-direction: column; gap: 8px; }
+.control-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.controls button {
+  padding: 9px 12px; border: 1px solid var(--line); background: #fff; border-radius: 8px;
+  font-size: 14px; cursor: pointer;
+}
+@media (hover: hover) {
+  .controls button:hover:not(:disabled) { background: #f8fafc; }
+}
+.controls button:disabled { opacity: 0.45; cursor: not-allowed; }
+.toggle { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); cursor: pointer; }
+
+/* ---- mobile action bar (touch place: nudge + confirm). Hidden on desktop. ---- */
+.action-bar { display: none; }
+.nudge-pad { display: grid; }
+.nudge-pad button {
+  border: 1px solid var(--line); border-radius: 8px; background: #fff;
+  font-size: 18px; line-height: 1; cursor: pointer;
+}
+.action-bar .confirm {
+  border: none; border-radius: 10px; color: #fff; background: var(--muted);
+  font-size: 17px; font-weight: 700; cursor: pointer;
+}
+.action-bar .confirm.legal { background: var(--green); }
+.action-bar .confirm.illegal { background: var(--muted); }
+.action-bar .confirm:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.tray-title { margin: 4px 0 0; font-size: 14px; }
+.tray {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(58px, 1fr));
+  gap: 6px; max-height: 360px; overflow-y: auto; padding: 4px;
+  border: 1px solid var(--line); border-radius: 10px; background: #fff;
+}
+.piece-tile {
+  display: flex; align-items: center; justify-content: center;
+  padding: 2px; border: 1px solid var(--line); border-radius: 8px; background: #fff; cursor: pointer;
+}
+@media (hover: hover) {
+  .piece-tile:hover { background: #f1f5f9; }
+}
+.piece-tile.selected { outline: 2px solid var(--blue); background: #eff6ff; }
+
+.toast {
+  position: fixed; left: 50%; bottom: 28px; transform: translateX(-50%);
+  background: rgba(15,23,42,0.92); color: #fff; padding: 10px 18px; border-radius: 999px;
+  font-size: 14px; opacity: 0; pointer-events: none; transition: opacity 0.25s;
+}
+.toast.show { opacity: 1; }
+
+/* ---- end ---- */
+#screen-end:not(.hidden) { display: flex; flex-direction: column; gap: 16px; }
+.winner-text { font-size: 20px; font-weight: 700; text-align: center; margin: 6px 0 16px; }
+
+.reflection .ref-summary { font-size: 15px; margin: 0 0 10px; }
+.reflection h3 { font-size: 15px; margin: 14px 0 4px; padding-left: 8px; border-left: 4px solid var(--line); }
+.reflection h3.ref-good { border-left-color: var(--green); }
+.reflection h3.ref-bad { border-left-color: var(--red); }
+.reflection h3.ref-tip { border-left-color: var(--blue); }
+.ref-list { margin: 4px 0; padding-left: 20px; line-height: 1.7; font-size: 13.5px; }
+.ref-list li { margin-bottom: 3px; }
+
+.history-list { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+.hist-row {
+  display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; align-items: baseline;
+  padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; background: #fff; font-size: 13px;
+}
+.hist-row small { grid-column: 1 / -1; color: var(--muted); }
+.final-list { display: flex; flex-direction: column; gap: 8px; }
+.final-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 14px; border: 1px solid var(--line); border-radius: 10px; background: #fff;
+}
+.final-row.winner { border-color: var(--yellow); background: #fffbeb; }
+.final-row .rank { font-weight: 700; width: 36px; }
+.final-row .pts { margin-left: auto; color: var(--muted); font-size: 14px; }
+
+/* ============================================================
+   Mobile / touch layout (≤980px, matches .game-layout collapse).
+   Two fixed bottom bars: #controls (rotate/flip/deselect/pass)
+   and .action-bar (nudge + confirm). Board capped so everything fits.
+   ============================================================ */
+@media (max-width: 980px) {
+  /* board: never taller than ~70vh so the bars + banner stay on screen */
+  #board {
+    max-width: none;
+    width: min(96vw, 70vh);
+    margin: 0 auto;
+  }
+  .board-wrap { align-items: center; }
+
+  /* leave room at the bottom for the two stacked fixed bars */
+  #screen-game:not(.hidden) { padding-bottom: 172px; }
+
+  /* row 1 (above action bar): rotate / flip / deselect / pass */
+  #controls {
+    position: fixed; left: 0; right: 0; bottom: 60px; z-index: 40;
+    margin: 0; padding: 8px 10px; gap: 8px;
+    background: rgba(255, 255, 255, 0.97);
+    border-top: 1px solid var(--line);
+    -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px);
+  }
+  .controls .control-row { flex-wrap: nowrap; }
+  .controls button { min-height: 44px; flex: 1; }
+  #btn-pass { flex: 1; }
+
+  /* row 2 (bottom): nudge pad + confirm */
+  .action-bar {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 41;
+    padding: 8px 12px;
+    padding-bottom: calc(8px + env(safe-area-inset-bottom));
+    background: rgba(255, 255, 255, 0.97);
+    border-top: 1px solid var(--line);
+    -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px);
+  }
+  .nudge-pad {
+    grid-template-columns: repeat(3, 40px);
+    grid-template-rows: repeat(2, 34px);
+    gap: 4px;
+  }
+  .nudge-pad button { min-height: 34px; }
+  .nudge-pad #btn-nudge-up    { grid-area: 1 / 2; }
+  .nudge-pad #btn-nudge-left  { grid-area: 2 / 1; }
+  .nudge-pad #btn-nudge-down  { grid-area: 2 / 2; }
+  .nudge-pad #btn-nudge-right { grid-area: 2 / 3; }
+  .action-bar .confirm { flex: 1; min-height: 48px; }
+
+  /* compact scoreboard so the scrollable column stays short */
+  .scoreboard { gap: 4px; }
+  .score-row { padding: 6px 8px; }
+  .swatch { width: 14px; height: 14px; }
+  .score-info { font-size: 12px; }
+
+  .tray { max-height: 220px; }
+
+  /* toast must clear both fixed bars */
+  .toast { bottom: 124px; z-index: 50; }
+}
+
+/* very narrow phones: tighten the nudge pad so the bar doesn't overflow */
+@media (max-width: 360px) {
+  .nudge-pad { grid-template-columns: repeat(3, 34px); }
+}

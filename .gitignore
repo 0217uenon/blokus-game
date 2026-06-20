@@ -1,0 +1,10 @@
+# OS / editor cruft
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+*~
+
+# Logs / deps (none currently, but keep the repo clean)
+*.log
+node_modules/
