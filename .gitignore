@@ -8,3 +8,7 @@ desktop.ini
 # Logs / deps (none currently, but keep the repo clean)
 *.log
 node_modules/
+
+# Personal play notes / auto-saved post-game reflections (kept local, not published).
+# The server (test/serve.js) recreates this folder on demand.
+lessons/
