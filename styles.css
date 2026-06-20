@@ -240,6 +240,13 @@ button.primary {
 
   .tray { max-height: 220px; }
 
+  /* スマホでは「駒（トレイ）」を上、「順番（スコアボード）」を下に並べ替える。
+     .side は縦並び flex なので order だけで入れ替わる（#controls は position:fixed
+     で別管理なので影響なし）。 */
+  .side .tray-title { order: 1; }
+  .side .tray       { order: 2; }
+  .side .scoreboard { order: 3; }
+
   /* toast must clear both fixed bars */
   .toast { bottom: 124px; z-index: 50; }
 }
