@@ -340,8 +340,8 @@
       var diff = pl.isHuman ? ('棋力:' + BK.difficultyLabel(game.humanLevel)) : BK.difficultyLabel(pl.difficulty);
       var info = document.createElement('span');
       info.className = 'score-info';
-      info.innerHTML = '<b>' + BK.COLORS[pl.id].name + '</b> ' + label
-        + ' <small>[' + diff + ']</small><br>'
+      info.innerHTML = '<b>' + BK.COLORS[pl.id].name + '</b> ' + escapeHtml(label)
+        + ' <small>[' + escapeHtml(diff) + ']</small><br>'
         + '残り ' + BK.remainingCells(pl) + 'マス／得点 ' + BK.scoreOf(pl)
         + (pl.finished ? '（終了）' : '');
       row.appendChild(sw); row.appendChild(info);
@@ -369,7 +369,7 @@
       var who = row.isHuman ? 'あなた' : (BK.COLORS[row.id].name + 'プレイヤー');
       var diff = row.isHuman ? '' : '（' + BK.difficultyLabel(row.difficulty) + '）';
       div.innerHTML = '<span class="rank">' + row.rank + '位</span>' + sw
-        + '<span>' + who + diff + '</span>'
+        + '<span>' + escapeHtml(who) + escapeHtml(diff) + '</span>'
         + '<span class="pts">' + row.score + '点（残り' + row.left + 'マス）</span>';
       el.finalList.appendChild(div);
     });
@@ -380,7 +380,15 @@
 
     // generate + persist the reflection (once per completed game)
     var record = BK.analyzeGame(game);
-    if (!savedThisGame) { BK.Store.save(record); savedThisGame = true; }
+    if (!savedThisGame) {
+      BK.Store.save(record);
+      savedThisGame = true;
+      // also auto-save this game's note into lessons/ (only works when served
+      // from the local Node server; silently no-ops on file:// or GitHub Pages)
+      BK.Store.autosaveToLessons(record).then(function (res) {
+        if (res && res.ok) toast('振り返りを ' + res.path + ' に保存しました');
+      });
+    }
     renderReflection(record);
     renderHistory();
     show('end');
@@ -414,7 +422,7 @@
     el.historyList.innerHTML = all.map(function (r) {
       var takeaway = r.weaknesses && r.weaknesses.length ? r.weaknesses[0] : '—';
       return '<div class="hist-row"><span>' + escapeHtml(r.dateStr) + '</span>'
-        + '<span>' + r.rank + '位・' + r.score + '点</span>'
+        + '<span>' + escapeHtml(r.rank) + '位・' + escapeHtml(r.score) + '点</span>'
         + '<small>' + escapeHtml(takeaway) + '</small></div>';
     }).join('');
   }

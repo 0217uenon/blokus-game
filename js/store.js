@@ -56,6 +56,46 @@
     return out;
   };
 
+  // Standalone Markdown for a SINGLE game's reflection (used by lessons/ autosave).
+  Store.recordToMarkdown = function (r) {
+    var out = '# ブロックス 振り返り — ' + r.dateStr + '\n\n';
+    out += '- 結果: ' + r.rank + '位（得点 ' + r.score + '、配置 ' + r.placedPieces + '/21、残り ' + r.remainingCells + 'マス）\n';
+    out += '- あなたの棋力設定: ' + BK.difficultyLabel(r.humanLevel) + '\n';
+    out += '- 対戦相手: ' + r.opponents.map(function (o) {
+      return o.color + '(' + BK.difficultyLabel(o.difficulty) + ')=' + o.score + '点';
+    }).join('、') + '\n\n';
+    out += '## 良かった点\n' + r.strengths.map(function (x) { return '- ' + x; }).join('\n') + '\n\n';
+    out += '## 改善点\n' + r.weaknesses.map(function (x) { return '- ' + x; }).join('\n') + '\n\n';
+    out += '## 次回の戦略\n' + r.tips.map(function (x) { return '- ' + x; }).join('\n') + '\n';
+    return out;
+  };
+
+  // Best-effort autosave of one game's reflection into the dev server's lessons/
+  // folder. No-op unless served from localhost (only the Node server in
+  // test/serve.js can write to disk). Resolves to the server response or null.
+  Store.autosaveToLessons = function (record) {
+    try {
+      // Only attempt when there could be a local Node backend: skip file:// (no
+      // server) and the GitHub Pages deployment (static, no backend). This still
+      // fires for localhost AND LAN-IP access to the dev server, so a phone
+      // playing through the PC's server saves onto the PC's lessons/ folder.
+      if (location.protocol === 'file:' || /(^|\.)github\.io$/i.test(location.hostname)) {
+        return Promise.resolve(null);
+      }
+      var d = new Date(record.ts);
+      var pad = function (n) { return (n < 10 ? '0' : '') + n; };
+      var stamp = d.getFullYear() + pad(d.getMonth() + 1) + pad(d.getDate())
+        + '-' + pad(d.getHours()) + pad(d.getMinutes()) + pad(d.getSeconds());
+      var filename = '振り返り-' + stamp + '.md';
+      return fetch('/api/save-reflection', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ filename: filename, markdown: Store.recordToMarkdown(record) }),
+      }).then(function (res) { return res.ok ? res.json() : null; })
+        .catch(function () { return null; });
+    } catch (e) { return Promise.resolve(null); }
+  };
+
   Store.download = function (filename, text) {
     var blob = new Blob([text], { type: 'text/markdown;charset=utf-8' });
     var url = URL.createObjectURL(blob);
