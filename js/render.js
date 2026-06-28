@@ -72,11 +72,40 @@
       }
     }
 
+    // Optional highlight layer (used by the puzzle's reveal screen to mark the
+    // "best move" / "your move"). Each h = { cells:[flatIdx...], fill?, stroke?,
+    // alpha?, lineWidth?, dashed? }. Additive — the game never passes highlights.
+    function drawHighlight(h) {
+      var cells = h.cells || [], i, r, c;
+      if (h.fill) {
+        ctx.globalAlpha = (h.alpha != null ? h.alpha : 0.5);
+        ctx.fillStyle = h.fill;
+        for (i = 0; i < cells.length; i++) {
+          r = (cells[i] / N) | 0; c = cells[i] % N;
+          ctx.fillRect(c * cell + 1, r * cell + 1, cell - 2, cell - 2);
+        }
+        ctx.globalAlpha = 1;
+      }
+      if (h.stroke) {
+        ctx.strokeStyle = h.stroke;
+        ctx.lineWidth = h.lineWidth || 3;
+        if (h.dashed) ctx.setLineDash([5, 4]);
+        for (i = 0; i < cells.length; i++) {
+          r = (cells[i] / N) | 0; c = cells[i] % N;
+          ctx.strokeRect(c * cell + 1.5, r * cell + 1.5, cell - 3, cell - 3);
+        }
+        if (h.dashed) ctx.setLineDash([]);
+      }
+    }
+
     function draw(state, overlay) {
       overlay = overlay || {};
       drawGrid();
       drawCorners(state.board);
       drawPieces(state.board);
+      if (overlay.highlights && overlay.highlights.length) {
+        for (var i = 0; i < overlay.highlights.length; i++) drawHighlight(overlay.highlights[i]);
+      }
       if (overlay.previewCells && overlay.previewCells.length) {
         drawPreview(overlay.previewCells, overlay.previewColor, overlay.previewLegal, overlay.previewArmed);
       }

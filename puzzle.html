@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <!-- Same defense-in-depth CSP as index.html: only same-origin scripts/styles. -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'" />
+  <title>詰めブロックス（次の一手）— Blokus Puzzles</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="puzzle.css" />
+</head>
+<body>
+  <header class="app-header">
+    <h1>詰めブロックス <span>次の一手</span></h1>
+    <p class="tagline">青（あなた）の手番。レベル別に「最善の1手」を探し、解説と改善点で上達する</p>
+  </header>
+
+  <!-- ============ 設定画面 ============ -->
+  <main id="puz-setup" class="screen">
+    <div class="card">
+      <h2>レベルを選ぶ</h2>
+      <p class="hint-text">レベルが上がるほど「何手先まで読むか」が深くなります。出題される盤面も序盤→終盤へと難しくなります。</p>
+      <div id="puz-level-cards" class="level-cards"></div>
+
+      <h3>出題数</h3>
+      <label class="field">
+        <span>1セッションの問題数</span>
+        <select id="puz-count"></select>
+      </label>
+
+      <button id="btn-puz-start" class="primary">スタート</button>
+      <p class="hint-text" id="puz-hist-summary"></p>
+      <div class="control-row">
+        <button id="btn-puz-clear">記録を消去</button>
+        <a class="link-btn" href="index.html">← 対戦（vs AI 3人）に戻る</a>
+      </div>
+    </div>
+
+    <div class="card rules-card">
+      <h2>遊び方</h2>
+      <ul>
+        <li>盤面はいつも<b>青（あなた）の手番</b>。残りピースから1つ選び、向きを整えて盤に置きます。</li>
+        <li>「解答する」を押すと、エンジンの<b>最善手</b>と比べて採点（★正解〜✕疑問手）します。</li>
+        <li>毎問、<b>なぜその手が最善か</b>と<b>あなたの手の改善点</b>を解説します。</li>
+        <li>レベル別の読みの深さ：初級＝自分の1手／中級＝2手先／上級＝約4手先／超上級＝モンテカルロ8〜12手先。</li>
+        <li>セッション終了時に、要約を <code>lessons/</code> フォルダへ自動保存します（ローカルサーバー時）。</li>
+      </ul>
+      <p class="hint-text">操作：ピース選択 →「回転／反転」で向き調整 → 盤をクリック/タップで仮置き（緑＝合法・灰＝不可）→「解答する」で確定。スマホは下部バーの「↑↓←→」で微調整できます。</p>
+    </div>
+  </main>
+
+  <!-- ============ 出題画面 ============ -->
+  <main id="puz-play" class="screen hidden">
+    <div class="game-layout">
+      <div class="board-wrap">
+        <div id="puz-banner" class="turn-banner">　</div>
+        <canvas id="board"></canvas>
+        <div id="puz-legend" class="legend hidden">
+          <span><i class="sw sw-you"></i>あなたの手</span>
+          <span><i class="sw sw-best"></i>最善手</span>
+        </div>
+      </div>
+
+      <aside class="side">
+        <div id="puz-info" class="puz-info"></div>
+
+        <!-- 解答（採点）パネル：出題中は hidden、解答後に表示 -->
+        <div id="puz-reveal" class="puz-reveal hidden">
+          <div id="puz-grade" class="grade-badge"></div>
+          <div id="puz-explain" class="explain"></div>
+          <div class="control-row">
+            <button id="btn-puz-next" class="primary">次の問題</button>
+          </div>
+          <div class="control-row">
+            <button id="btn-puz-quit">ここで終了して結果へ</button>
+          </div>
+        </div>
+
+        <!-- 出題中の操作（トレイ＋回転など） -->
+        <div id="puz-solve">
+          <div id="controls" class="controls">
+            <div class="control-row">
+              <button id="btn-puz-rotate">回転 (R)</button>
+              <button id="btn-puz-flip">反転 (F)</button>
+              <button id="btn-puz-deselect">選択解除</button>
+            </div>
+          </div>
+          <h3 class="tray-title" id="puz-tray-title">あなたのピース</h3>
+          <div id="tray" class="tray"></div>
+        </div>
+      </aside>
+    </div>
+
+    <!-- スマホ専用の下部固定バー（タッチ微調整＋解答）。デスクトップでは CSS で display:none。 -->
+    <div id="action-bar" class="action-bar">
+      <div class="nudge-pad" aria-label="位置の微調整">
+        <button id="btn-nudge-up" aria-label="上へ">↑</button>
+        <button id="btn-nudge-left" aria-label="左へ">←</button>
+        <button id="btn-nudge-right" aria-label="右へ">→</button>
+        <button id="btn-nudge-down" aria-label="下へ">↓</button>
+      </div>
+      <button id="btn-answer" class="confirm" disabled>解答する</button>
+    </div>
+
+    <div id="toast" class="toast"></div>
+  </main>
+
+  <!-- ============ 結果画面 ============ -->
+  <main id="puz-end" class="screen hidden">
+    <div class="card">
+      <h2>セッション結果</h2>
+      <p id="puz-end-summary" class="winner-text"></p>
+      <div id="puz-end-list" class="final-list"></div>
+    </div>
+
+    <div class="card">
+      <h2>総評（このセッションの傾向）</h2>
+      <div id="puz-end-themes" class="reflection"></div>
+      <p id="puz-save-status" class="hint-text"></p>
+      <div class="control-row">
+        <button id="btn-puz-export">ノートを書き出す（.md）</button>
+        <button id="btn-puz-again" class="primary">もう一度（レベル選択へ）</button>
+      </div>
+      <div class="control-row">
+        <a class="link-btn" href="index.html">← 対戦（vs AI 3人）に戻る</a>
+      </div>
+    </div>
+  </main>
+
+  <script src="js/constants.js"></script>
+  <script src="js/pieces.js"></script>
+  <script src="js/rules.js"></script>
+  <script src="js/state.js"></script>
+  <script src="js/ai.js"></script>
+  <script src="js/render.js"></script>
+  <script src="js/puzzle-engine.js"></script>
+  <script src="js/puzzle-store.js"></script>
+  <script src="js/puzzle-ui.js"></script>
+  <script src="js/puzzle-main.js"></script>
+</body>
+</html>

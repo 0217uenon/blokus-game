@@ -241,4 +241,10 @@
   };
 
   AI.legalMoves = legalMoves;
+
+  // Exposed for the "次の一手"（詰めブロックス）puzzle engine so it shares ONE
+  // position evaluation + weight table with the in-game AI (single source of
+  // truth). Additive only — existing callers are unaffected.
+  AI.evalPosition = evalPosition;   // (board, me, weights, myPlacedPieces) -> number
+  AI.WEIGHTS = WEIGHTS;             // { intermediate, advanced, expert }
 })(window.BK);

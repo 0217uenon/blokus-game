@@ -1,0 +1,87 @@
+/* puzzle.css — styles specific to 詰めブロックス（次の一手）.
+ * Builds on styles.css (shared board / tray / controls / action-bar / cards).  */
+
+/* The shared stylesheet only hides `.screen.hidden`; these in-screen panels are
+ * toggled with `.hidden` too, so give that class effect for them. */
+#puz-solve.hidden, #puz-reveal.hidden, #puz-legend.hidden { display: none; }
+
+#puz-setup:not(.hidden) { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media (max-width: 760px) { #puz-setup:not(.hidden) { grid-template-columns: 1fr; } }
+
+/* ---- level chooser (cards) ---- */
+.level-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 6px 0 8px; }
+@media (max-width: 420px) { .level-cards { grid-template-columns: 1fr; } }
+.level-card {
+  text-align: left; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px;
+  background: #fff; cursor: pointer; display: flex; flex-direction: column; gap: 3px;
+}
+.level-card .lc-name { font-weight: 700; font-size: 15px; }
+.level-card .lc-read { font-size: 12px; color: var(--muted); line-height: 1.5; }
+.level-card.selected { outline: 2px solid var(--blue); background: #eff6ff; }
+@media (hover: hover) { .level-card:hover { background: #f8fafc; } }
+
+/* .link-btn lives in styles.css (shared by both pages) */
+
+#btn-puz-clear { padding: 9px 12px; border: 1px solid var(--line); background: #fff; border-radius: 8px; font-size: 14px; cursor: pointer; }
+
+/* ---- play: info panel ---- */
+.puz-info {
+  border: 1px solid var(--line); border-radius: 10px; background: #fff; padding: 10px 12px;
+  font-size: 13px; line-height: 1.6;
+}
+.puz-info .pi-progress { font-weight: 700; font-size: 15px; }
+.puz-info .pi-read { color: var(--muted); font-size: 12px; }
+.puz-info .pi-row { display: flex; justify-content: space-between; gap: 10px; margin-top: 4px; }
+.puz-info .pi-score b { color: var(--blue); }
+
+/* ---- board legend (shown on reveal) ---- */
+.legend { display: flex; gap: 16px; justify-content: center; font-size: 13px; color: var(--muted); }
+.legend .sw { display: inline-block; width: 14px; height: 14px; border-radius: 3px; margin-right: 5px; vertical-align: middle; }
+.legend .sw-you  { border: 3px solid #1d4ed8; }
+.legend .sw-best { border: 3px dashed #d97706; background: rgba(245, 158, 11, 0.30); }
+
+/* ---- reveal / grading panel ---- */
+.puz-reveal { display: flex; flex-direction: column; gap: 12px; }
+.grade-badge {
+  display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;
+  padding: 12px 14px; border-radius: 12px; border: 2px solid var(--line); background: #fff;
+}
+.grade-badge .gb-mark { font-size: 26px; line-height: 1; }
+.grade-badge .gb-label { font-size: 18px; font-weight: 800; }
+.grade-badge .gb-points { margin-left: auto; font-size: 15px; color: var(--muted); }
+.grade-badge .gb-points b { font-size: 20px; color: var(--ink); }
+.grade-badge.tone-best  { border-color: var(--yellow); background: #fffbeb; }
+.grade-badge.tone-great { border-color: var(--green);  background: #f0fdf4; }
+.grade-badge.tone-good  { border-color: var(--green);  background: #f0fdf4; }
+.grade-badge.tone-ok    { border-color: var(--yellow); background: #fefce8; }
+.grade-badge.tone-soft  { border-color: #f97316;       background: #fff7ed; }
+.grade-badge.tone-bad   { border-color: var(--red);    background: #fef2f2; }
+
+.explain { font-size: 13.5px; line-height: 1.7; }
+.explain .ex-line { margin: 0 0 8px; padding-left: 10px; border-left: 4px solid var(--line); }
+.explain .ex-line.ex-you  { border-left-color: var(--blue); }
+.explain .ex-line.ex-best { border-left-color: var(--yellow); }
+.explain h4 { margin: 12px 0 4px; font-size: 14px; padding-left: 8px; border-left: 4px solid var(--line); }
+.explain h4.ex-why { border-left-color: var(--green); }
+.explain h4.ex-imp { border-left-color: var(--red); }
+.explain ul { margin: 4px 0; padding-left: 20px; }
+.explain li { margin-bottom: 3px; }
+
+/* ---- end screen ---- */
+#puz-end:not(.hidden) { display: flex; flex-direction: column; gap: 16px; }
+.final-row .puz-q { font-weight: 700; width: 56px; }
+.final-row .puz-band { margin-left: 4px; }
+.final-row .puz-pts { margin-left: auto; color: var(--muted); font-size: 14px; }
+
+/* ============================================================
+   Mobile (≤980px): mirror the game's fixed bottom bars during solve.
+   During reveal we drop the bars and show the panel inline.
+   ============================================================ */
+@media (max-width: 980px) {
+  #puz-play:not(.hidden):not(.revealing) { padding-bottom: 150px; }
+  /* reveal mode: hide BOTH fixed solve bars so the panel/buttons aren't covered.
+     #controls also sits inside #puz-solve (hidden via .hidden), but hide it
+     explicitly so reveal-mode stays correct regardless of DOM nesting. */
+  #puz-play.revealing #action-bar,
+  #puz-play.revealing #controls { display: none; }
+}
