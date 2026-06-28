@@ -4,21 +4,41 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'" />
-  <title>ページが見つかりません — ブロックス</title>
-  <!-- absolute paths so links work no matter which (mistyped) path served this 404 -->
+  <title>ブロックス — メニュー</title>
+  <!-- absolute paths so links/styles work no matter which (mistyped) path served this page -->
   <link rel="stylesheet" href="/blokus-game/styles.css" />
+  <style>
+    .menu-screen { display: flex; justify-content: center; }
+    .menu-card { width: 100%; max-width: 460px; display: flex; flex-direction: column; gap: 12px; }
+    .menu-link {
+      display: flex; align-items: center; gap: 14px; text-decoration: none; color: var(--ink);
+      border: 1px solid var(--line); border-radius: 12px; padding: 16px; background: #fff;
+    }
+    .menu-link:active { background: #f1f5f9; }
+    @media (hover: hover) { .menu-link:hover { background: #f8fafc; border-color: #cbd5e1; } }
+    .menu-emoji { font-size: 30px; line-height: 1; }
+    .menu-text { display: flex; flex-direction: column; gap: 2px; }
+    .menu-text b { font-size: 16px; }
+    .menu-text small { color: var(--muted); font-size: 12.5px; }
+    .menu-note { color: var(--muted); font-size: 12px; line-height: 1.6; margin: 4px 2px 0; }
+  </style>
 </head>
 <body>
   <header class="app-header">
     <h1>ブロックス <span>Blokus</span></h1>
-    <p class="tagline">お探しのページは見つかりませんでした（404）</p>
+    <p class="tagline">遊ぶモードを選んでください</p>
   </header>
-  <main class="screen">
-    <div class="card">
-      <h2>ページが見つかりません</h2>
-      <p class="hint-text">URL が少し違うかもしれません。下のリンクから移動できます。</p>
-      <a class="link-btn wide" href="/blokus-game/">🎮 対戦（vs AI 3人）をひらく</a>
-      <a class="link-btn wide" href="/blokus-game/puzzle.html">🧩 詰めブロックス（次の一手）をひらく</a>
+  <main class="screen menu-screen">
+    <div class="card menu-card">
+      <a class="menu-link" href="/blokus-game/">
+        <span class="menu-emoji">🎮</span>
+        <span class="menu-text"><b>対戦（vs AI 3人）</b><small>あなた（青）＋AI 3人の4人対戦</small></span>
+      </a>
+      <a class="menu-link" href="/blokus-game/puzzle.html">
+        <span class="menu-emoji">🧩</span>
+        <span class="menu-text"><b>詰めブロックス（次の一手）</b><small>レベル別に「最善の1手」を当てる練習</small></span>
+      </a>
+      <p class="menu-note">※ アドレスが少し違ったため、この案内ページを表示しています。上のいずれかを開いて、その画面でブックマーク／ホーム画面に追加すると、次回から直接ひらけます。</p>
     </div>
   </main>
 </body>
